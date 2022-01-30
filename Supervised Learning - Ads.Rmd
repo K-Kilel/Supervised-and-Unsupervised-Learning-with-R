@@ -1,0 +1,616 @@
+---
+title: "Indendent Project - Week 1 Module 3"
+author: "Kelvin Kilel"
+date: "1/22/2022"
+output: html_document
+---
+# Specifying the Question
+
+A Kenyan entrepreneur has created an online cryptography course and would want to advertise it on her blog. She currently targets audiences originating from various countries. In the past, she ran ads to advertise a related course on the same blog and collected data in the process. She would now like to employ your services as a Data Science Consultant to help her identify which individuals are most likely to click on her ads. 
+
+# Defining the Metric of Success
+
+To analyze the different variables and recommend which individuals are most likely to click on ads.
+
+# Understanding the Context
+
+The ability to monitor ads of an organization helps the organization understand the effectiveness of the ads and foster efficiency. Adjustments can be made to create effective ads and ensure the ads get to the target audience. 
+
+# Recording the Experimental Design
+
+1. Find and deal with outliers, anomalies, and missing data within the dataset.
+
+2. Perform  univariate and bivariate analysis.
+
+3. From your insights provide a conclusion and recommendation.
+
+# Reading the Data
+
+```{r}
+## Loading the required libraries
+
+# data.table::update.dev.pkg()
+library(data.table)
+library(tidyverse)
+library(corrplot)
+library(class)    
+require(class)
+library(rpart)
+library(ggplot2) 
+
+
+# Loading the dataset
+ad_data <- read_csv(url('http://bit.ly/IPAdvertisingData'))
+```
+# Checking the Data
+
+```{r}
+## Viewing the dataset
+View(ad_data)
+
+```
+
+```{r}
+
+## Previewing the top of our dataset
+head(ad_data)
+
+```
+
+```{r}
+
+## Checking the summary of the dataset
+summary(ad_data)
+
+```
+
+```{r}
+
+## Checking data type
+str(ad_data)
+
+```
+
+```
+# Tidying the Dataset
+
+```{r}
+
+# Converting to data frame
+
+ad_dataset <- data.frame(ad_data)
+
+```
+
+```{r}
+## Checking for Missing Values
+colSums(is.na(ad_dataset))
+
+### There are no missing values in our dataset.
+
+```
+
+```{r}
+
+## Checking for outliers
+
+boxplot(ad_dataset$'Daily.Time.Spent.on.Site')
+boxplot(ad_dataset$Age)
+boxplot(ad_dataset$'Area.Income')
+boxplot(ad_dataset$'Daily.Internet.Usage')
+
+### There are outliers on Area Income. This is due to difference in earnings.
+```
+
+# Univariate Analysis
+
+### i) Finding Mean
+
+```{r}
+
+#### Daily Time Spent on Site
+ad_timespent_mean <- mean(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_mean
+
+```
+
+```{r}
+
+#### Age
+
+ad_mean_age <- mean(ad_dataset$Age)
+ad_mean_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_mean_income <- mean(ad_dataset$Area.Income)
+ad_mean_income
+
+```
+
+```{r}
+#### Daily Internet Usage
+ad_mean_internetusage <- mean(ad_dataset$Daily.Internet.Usage)
+ad_mean_internetusage
+
+```
+
+
+
+### ii) Finding Median
+
+``` {r}
+
+#### Daily Time Spent on Site
+ad_timespent_median <- median(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_median
+
+```
+
+```{r}
+
+#### Age
+
+ad_median_age <- median(ad_dataset$Age)
+ad_median_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_median_income <- median(ad_dataset$Area.Income)
+ad_median_income
+
+```
+
+```{r}
+
+#### Daily Internet Usage
+ad_median_internetusage <- median(ad_dataset$Daily.Internet.Usage)
+ad_median_internetusage
+
+```
+
+
+### iii) Finding Mode
+
+```{r}
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+#### Daily Time Spent on Site
+ad_timespent_mode <- getmode(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_mode
+
+```
+
+```{r}
+
+#### Age
+
+ad_mode_age <- getmode(ad_dataset$Age)
+ad_mode_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_mode_income <- getmode(ad_dataset$Area.Income)
+ad_mode_income
+
+```
+
+```{r}
+
+#### Daily Internet Usage
+ad_mode_internetusage <- getmode(ad_dataset$Daily.Internet.Usage)
+ad_mode_internetusage
+
+```
+## Measure of Dispersion
+
+
+### Finding Minimum
+
+```{r}
+
+#### Daily Time Spent on Site
+ad_timespent_min <- min(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_min
+
+```
+
+```{r}
+
+#### Age
+
+ad_min_age <- min(ad_dataset$Age)
+ad_min_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_min_income <- min(ad_dataset$Area.Income)
+ad_min_income
+
+```
+
+```{r}
+
+#### Daily Internet Usage
+ad_min_internetusage <- min(ad_dataset$Daily.Internet.Usage)
+ad_min_internetusage
+
+```
+
+```{r}
+
+#### Clicked on Ad
+ad_min_clickedad <- min(ad_dataset$Clicked.on.Ad)
+ad_min_clickedad
+```
+
+
+### Finding Maximum
+
+```{r}
+
+#### Daily Time Spent on Site
+ad_timespent_max <- max(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_max
+
+```
+
+```{r}
+
+#### Age
+
+ad_max_age <- max(ad_dataset$Age)
+ad_max_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_max_income <- max(ad_dataset$Area.Income)
+ad_max_income
+
+```
+
+```{r}
+
+#### Daily Internet Usage
+ad_max_internetusage <- max(ad_dataset$Daily.Internet.Usage)
+ad_max_internetusage
+
+```
+
+
+### Finding Variance
+
+```{r}
+
+#### Daily Time Spent on Site
+ad_timespent_var <- var(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_var
+
+```
+
+```{r}
+
+#### Age
+
+ad_var_age <- var(ad_dataset$Age)
+ad_var_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_var_income <- var(ad_dataset$Area.Income)
+ad_var_income
+
+```
+
+```{r}
+
+#### Daily Internet Usage
+ad_var_internetusage <- var(ad_dataset$Daily.Internet.Usage)
+ad_var_internetusage
+
+```
+
+### Finding Standard Deviation
+
+```
+
+#### Daily Time Spent on Site
+ad_timespent_sd <- sd(ad_dataset$Daily.Time.Spent.on.Site)
+ad_timespent_sd
+
+```
+
+```{r}
+
+#### Age
+
+ad_sd_age <- sd(ad_dataset$Age)
+ad_sd_age
+
+```
+
+```{r}
+
+#### Area Income
+ad_sd_income <- sd(ad_dataset$Area.Income)
+ad_sd_income
+
+
+```
+
+```{r}
+#### Daily Internet Usage
+ad_sd_internetusage <- sd(ad_dataset$Daily.Internet.Usage)
+ad_sd_internetusage
+
+```
+# Univariate Graphical
+
+```{r}
+## Bar Plot to understand Clicked Ads
+
+Clicked_Ad_frequency <- table(ad_dataset$Clicked.on.Ad)
+
+barplot(Clicked_Ad_frequency)
+
+### There were equal number of people who clicked on the ad and those that did not.
+
+```
+
+```{r}
+## Understanding the Age of the people that visited the site
+
+hist(ad_dataset$Age)
+
+### Most of the people that visited the site were aged between 25 to 40.
+
+```
+
+```{r}
+## Understanding the income distribution of the people  who visited the site
+
+hist(ad_dataset$Area.Income)
+
+### Most of the people that visited the site had income above average.
+
+```
+
+```{r}
+## Understanding the daily time spent on site
+
+hist(ad_dataset$Daily.Time.Spent.on.Site)
+
+### Most of people on the site spent between 75 to 80 minutes
+
+```
+
+# Bivariate Analysis
+## Covariance
+
+```{r}
+# Finding covariance between age and daily time spent on the intenet
+
+age <- ad_dataset$Age
+
+time_spent<- ad_dataset$Daily.Time.Spent.on.Site
+
+cov(age,time_spent)
+
+### There is a negative linear relationship between age and daily time spent on the internet.
+
+```
+
+```{r}
+
+# Finding Covariance between Area Income and Daily Internet Usage
+
+Income <- ad_dataset$Area.Income
+
+Internet_usage <- ad_dataset$Daily.Internet.Usage
+
+cov(Income,Internet_usage)
+
+### There is positive linear relationship between Area Income and Daily Internet Usage
+```
+## Graphical Representation
+
+```{r}
+## Scatter Plot of time spent on site and age
+
+
+plot(time_spent, age, xlab="time_spent", ylab="age")
+
+### Though not very clear, but people between 70 to 90 spent a lot of time on site.
+
+```
+
+
+
+```{r}
+## Scatter Plot of Area Inocme and daily internet usage
+
+
+plot(Income, Internet_usage, xlab="Area.Income", ylab="Daily.Internet.Usage")
+
+### Increase in income leads to an increase in daily internet usage
+
+```
+
+```{r}
+
+ad_dataset_num <- select(ad_dataset, c(1:4))
+data.frame(ad_dataset_num)
+
+corrplot(cor(ad_dataset_num), type= 'upper', method = 'number', tl.cex = 0.9)
+  
+#### There are weak correlations between numerical variables.  
+  
+```
+
+# Modelling
+
+## Implementing Solution using KNN
+
+```{r}
+
+# Feature Selection
+
+ad_model <- select(ad_data, c('Daily Time Spent on Site', 'Age', 'Area Income', 'Daily Internet Usage', 'Male', 'Clicked on Ad'))
+
+# Storing it as dataframe
+ad_model <- data.frame(ad_model)
+
+
+head(ad_model)
+
+```
+
+```{r}
+# Displaying the structure of our dataframe
+
+str(ad_model)
+
+```
+
+```{r}
+set.seed(1234)
+
+
+# Creating a random number equal 90% of total number of rows
+
+ad_random <- sample(1:nrow(ad_model), 0.9 * nrow(ad_model))
+
+head(ad_random)
+```
+
+```{r}
+
+# Normalizing our data
+
+nor <-function(x) { (x -min(x))/(max(x)-min(x)) }
+
+ad_norm <- as.data.frame(lapply(ad_model[,1:5], nor))
+
+summary(ad_norm)
+
+```
+
+```{r}
+# Creating train and test sets
+
+Train <- ad_norm[ad_random,]
+Test <- ad_norm[-ad_random,]
+
+train_target <- as.factor(ad_dataset[ad_random,10])
+test_target <- as.factor(ad_dataset[ad_random,10])
+
+
+```
+
+```{r}
+# Running the knn function
+
+predict <- knn(Train,Test,cl=train_target,k=29)
+
+```
+
+
+```{r}
+
+# Creating the confusion matrix
+
+# tb <- table(predict,test_target)
+
+```
+
+
+```{r}
+# Checking the accuracy
+# accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
+# accuracy(tb)
+
+
+```
+
+# Challenging the Solution using SVM
+
+```
+
+Challenging the solution using SVM
+```{r}
+Train <- ad_model[ad_random,]
+Test <- ad_model[-ad_random,]
+
+train_target <- as.factor(ad_dataset[ad_random,10])
+test_target <- as.factor(ad_dataset[ad_random,10])
+```
+
+
+```{r}
+#Train control to train data on different algorithm
+
+#install.packages("caret")
+#install.packages("kernlab")
+library(caret)
+library(kernlab)
+
+tr_ctl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+```
+
+```{r}
+Train$Clicked.on.Ad = as.factor(Train$Clicked.on.Ad)
+
+svm_Linear <- train(Clicked.on.Ad ~ ., data = Train, method = "svmLinear",
+trControl=tr_ctl, preProcess = c("center", "scale"), tuneLength = 10)
+
+```
+
+```{r}
+test_pred <- predict(svm_Linear, newdata = Test)
+confusionMatrix(table(test_pred, Test$Clicked.on.Ad))
+
+```
+
+
+# Conclusions.
+
+SVM had a higher accuracy of 96%.
+
+From our dataset, the mean age is 36 years.
+
+The mean area income is 55000.
+
+The Average time spent on the site is 65 minutes.
+
+People between age 70-90 spend more time on site.
+
+Increase in income increases daily internet usage.
+
+# Recommendations
+
+The organization should target people with higher income as they spend more on daily internet usage to click on ad.
+
+The older people spend more time on site and are therefore a good target to click on ad. 
+

@@ -1,0 +1,404 @@
+---
+title: "Unsupervised Learning"
+author: "Kelvin Kilel"
+date: "1/29/2022"
+output: html_document
+---
+
+# Specifying the Question
+
+ The brand’s Sales and Marketing team would like to understand their customer’s behavior from data that they have collected over the past year. More specifically, they would like to learn the characteristics of customer groups.
+
+i). Perform clustering stating insights drawn from your analysis and visualizations.
+
+ii). Upon implementation, provide comparisons between the approaches learned this week i.e. K-Means clustering vs Hierarchical clustering highlighting the strengths and limitations of each approach in the context of your analysis. 
+
+# Defining the Metric of Success
+
+To analyze the different variables and create insights on the customers' behaviors.
+
+Perform clustering and draw insights from analysis and visualizations.
+
+Provide comparison between K- Means Clustering and Hierachial Clustering.
+
+# Understanding the Context
+
+Kira Plastinina is a Russian brand that is sold through a defunct chain of retail stores in Russia, Ukraine, Kazakhstan, Belarus, China, Philippines, and Armenia. The brand’s Sales and Marketing team would like to understand their customer’s behavior from data that they have collected over the past year. 
+
+# Recording the Experimental Design
+
+1. Problem Definition
+2. Data Sourcing
+3. Check the Data
+4. Perform Data Cleaning
+5. Perform Exploratory Data Analysis  (Univariate, Bivariate & Multivariate)
+6. Implement the Solution
+7. Challenge the Solution
+8. Follow up Questions
+
+# Data Sourcing
+
+```{r}
+# Loading the Required Libraries
+# data.table::update.dev.pkg()
+library(data.table)
+
+```
+
+```{r}
+# Reading the Dataset
+df = read.csv(url("http://bit.ly/EcommerceCustomersDataset"))
+
+
+```
+
+
+```{r}
+#Previewing the top dataset
+head(df)
+
+```
+
+```{r}
+# Checking the class types
+str(df)
+
+```
+
+```{r}
+#Checking for dimensions
+
+dim(df)
+## There dataset has 12,330 rows and 18 columns.
+```
+
+```{r}
+# Checking for summary 
+
+summary(df)
+
+```
+# Data Cleaning
+
+```{r}
+
+# Changing the loaded dataset to dataframe
+
+customer_df <- as.data.frame(df)
+```
+
+```{r}
+#Making the column names uniform
+
+colnames(customer_df) = tolower(colnames(df))
+
+```
+
+```{r}
+
+# Checking for duplicates
+duplicates <- customer_df[duplicated(customer_df),]
+dim(duplicates)
+
+```
+
+```{r}
+
+# Dropping the duplicates
+
+df2 <- customer_df[!duplicated(customer_df),]
+
+dim(df2)
+
+```
+
+```{r}
+# Checking for missing values
+
+colSums(is.na(df2))
+
+```
+
+```{r}
+
+# Dropping missing values
+
+df3 = na.omit(df2)
+
+colSums(is.na(df3))
+
+```
+
+```{r}
+# Checking for Outliers
+
+num_cols <- subset(df3, select = -c(specialday, month, operatingsystems,browser, region, traffictype, visitortype,weekend,revenue))
+
+boxplot(num_cols)
+
+### All numerical columns have outliers.We will leave the outliers since the dataset is computer generated.
+
+```
+# Univariate Analysis
+
+```{r}
+# Loading required libraries
+library(ggplot2)
+## install.packages("psych")
+library(psych)
+
+```
+
+i.) Central Tendencies
+
+```{r}
+describe(num_cols)
+
+```
+
+```{r}
+par(mfrow = c(2, 2))
+hist(num_cols$administrative)
+hist(num_cols$informational)
+hist(num_cols$bouncerates)
+hist(num_cols$exitrates)
+
+```
+
+```{r}
+par(mfrow = c(2, 2))
+hist(num_cols$administrative_duration)
+hist(num_cols$informational_duration)
+hist(num_cols$productrelated_duration)
+hist(num_cols$pagevalues)
+
+```
+## Categorical Analysis
+
+```{r}
+# install.packages("ggpubr")
+library(ggpubr)
+
+r <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = revenue))
+#Was traffic high on weekends or not?
+w <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = weekend))
+#What group of visitors frequented the website?
+v <-ggplot(data = df3) +
+  geom_bar(mapping = aes(x = visitortype))
+#What traffic type was mostly used?
+t <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = traffictype))
+ggarrange(r, w, v, t + rremove("x.text"), 
+          ncol = 2, nrow = 2)
+```
+
+#### 1. Most of the traffic in the website doesn’t generate any revenue. 
+
+#### 2. There is more traffic on weekdays than weekends. 
+
+#### 3. Most of the people visiting the website are returning visitors. Only a small percentage of the visitors are new.
+
+```{r}
+
+#Which months had the highest traffic
+m <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = month))
+  
+#Distribution of operating systems on traffic
+o <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = operatingsystems))
+  
+#Browser distribution
+b <-ggplot(data = df3) +
+  geom_bar(mapping = aes(x = browser))
+  
+#Which regions trafficked the website the most?
+r <- ggplot(data = df3) +
+  geom_bar(mapping = aes(x = region))
+  
+ggarrange(m, o, b, r + rremove("x.text"), 
+          ncol = 2, nrow = 2)
+
+```
+
+#### There is a lot of traffic in the website in the months of March, May, November and Dec 
+
+#### Region 1 had more traffic compared to the other regions. Region 3 also had significantly high traffic.
+
+# Bivariate Analysis
+
+```{r}
+# Revenue generated monthly
+df3 %>% 
+  ggplot() +
+  aes(x = month, revenue = ..count../nrow(df3), fill = revenue) +
+  geom_bar() +
+  ylab("relative frequency")
+
+```
+```{r}
+library(corrplot)
+
+corrplot(cor(num_cols), type= 'upper', method = 'number', tl.cex = 0.9)
+
+
+```
+
+
+#### There is a strong positive relationship between product related and product related duartion.
+
+#### There is also a strong positive relationship between exit rates and bounce rates.
+
+# Implementing the Solution
+
+## Feature Engineering
+
+```{r}
+
+#Removing the weekend column
+model <- subset(df3, select = -c(weekend))
+#Separating features from target
+new_model <- model[, c(1,2,3,4,5,6,7,8,9,10)]
+class_model <- model[, "revenue"]
+head(new_model)
+
+```
+
+```{r}
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+
+cust_norm <- as.data.frame(lapply(new_model[,1:10], normalize))
+
+summary(cust_norm)
+
+```
+
+## Modelling 
+
+1. K-Means Clustering
+
+```{r}
+#Applying the K-means clustering algorithm with no. of centroids(k)=2
+result<- kmeans(cust_norm,2) 
+
+```
+
+```{r}
+
+# Previewing the no. of records in each cluster
+
+result$size 
+
+```
+
+```{r}
+
+# Getting the value of cluster center datapoint value(3 centers for k=3)
+
+result$centers 
+
+```
+
+```{r}
+
+# Getting the cluster vector that shows the cluster where each record falls
+
+result$cluster
+
+```
+
+```{r}
+
+# Visualizing the  clustering results
+
+par(mfrow = c(1,2), mar = c(5,4,2,2))
+
+```
+
+```{r}
+# # Plotting to see how administrative and administrative duration data points have been distributed in clusters
+
+plot(cust_norm[c(1,2)], col = result$cluster)
+
+```
+
+```{r}
+
+par(mfrow = c(1,2), mar = c(5,4,2,2))
+
+```
+
+```{r}
+
+# Plotting to see how administrative and administrative duration data points have been distributed originally as per "class" attribute in dataset
+
+plot(cust_norm[c(1,2)], col = class_model)
+```
+
+```{r}
+
+# Plotting to see how informational and informational duration data points have been distributed in clusters
+plot(cust_norm[c(3,4)], col = result$cluster)
+plot(cust_norm[c(3,4)], col = class_model)
+
+```
+
+```{r}
+
+table(result$cluster, class_model)
+
+### The table shows that cluster 1 responds to False and Cluster 2 responds to True.
+
+```
+
+# Challenging the solution
+
+```{r}
+# Scaling our data
+
+cust_norm <- scale(cust_norm)
+
+```
+
+```{r}
+# Computing the Euclidean distance betwee observations
+
+d <- dist(cust_norm, method = "euclidean")
+
+```
+
+```{r}
+
+# Performing hierarchial clustering using the Ward's method
+
+res.hc <- hclust(d,method = "ward.D2")
+
+```
+
+```{r}
+# Plotting the obtained dendrogram
+
+plot(res.hc,cex=0.6, hang = -1)
+
+```
+# Conclusions
+
+## K-Means clustering creates a clearer illustration than the hierarchical clustering. 
+
+## March, May, November and December have a higher visit to the website.
+
+## Most people who visit the website are returning visitors. 
+
+## Region 1 and Region 3 have more people who visit the website.
+
+# Follow up questions
+
+## Did we have the right data?
+
+## We did have the right data but computer generated data should not have much missing values.
+
+
